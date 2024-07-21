@@ -73,14 +73,11 @@ type Client struct {
 	//at.ContextAware
 
 	client.Client
-
-	//Context context.Context `json:"context"`
 }
 
 func (c *configuration) Client(scheme *runtime.Scheme, cfg *rest.Config) (cli *Client, err error) {
 
-	cli = &Client{}
-	cli.Client, err = KubeClient(scheme, cfg)
+	cli, err = KubeClient(scheme, cfg)
 
 	return
 }

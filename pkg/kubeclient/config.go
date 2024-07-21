@@ -1,7 +1,6 @@
 package kubeclient
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/kube-starter/pkg/kubeconfig"
 	"github.com/hidevopsio/kube-starter/pkg/oidc"
@@ -18,29 +17,25 @@ const (
 )
 
 // KubeClient new kube client
-func KubeClient(scheme *runtime.Scheme, cfg *rest.Config) (k8sClient client.Client, err error) {
+func KubeClient(scheme *runtime.Scheme, cfg *rest.Config) (cli *Client, err error) {
 	log.Info("Creating kube client")
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
-	log.Infof("created kube client: %v", k8sClient)
-	if k8sClient == nil {
-		go func() {
-			var count int
-			for k8sClient == nil {
-				count++
-				log.Info("Creating kube client")
-				k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
-				log.Infof("created kube client by retried %v times: %v", k8sClient, count)
-				if err == nil && k8sClient != nil {
-					app.Register(k8sClient)
-					log.Infof("Got kube client by retry %v times: %v", k8sClient, count)
-					break
-				}
-				time.Sleep(time.Second)
+	var k8sClient client.Client
+	cli = &Client{}
+	go func() {
+		var count int
+		for cli.Client == nil {
+			count++
+			log.Info("Creating kube client")
+			k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
+			log.Infof("created kube client by retried %v times: %v", k8sClient, count)
+			if err == nil && k8sClient != nil {
+				cli.Client = k8sClient
+				log.Infof("Got kube client by retry %v times: %v", k8sClient, count)
+				break
 			}
-		}()
-	} else {
-		log.Info("Got kube client")
-	}
+			time.Sleep(time.Second)
+		}
+	}()
 
 	return
 }

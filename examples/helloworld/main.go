@@ -171,7 +171,7 @@ func (c *Controller) ListDeployment(_ struct {
 }, namespace string, token *oidc.Token) (response *DeploymentListResponse, err error) {
 	response = new(DeploymentListResponse)
 	var deploymentList appsv1.DeploymentList
-	if c.client != nil {
+	if c.client.Client != nil {
 		err = c.client.List(context.TODO(), &deploymentList, client.InNamespace(namespace))
 		if err == nil {
 			user := "unknown"
