@@ -18,7 +18,7 @@ const (
 
 // KubeClient new kube client
 func KubeClient(scheme *runtime.Scheme, cfg *rest.Config) (cli *Client, err error) {
-	log.Info("Creating kube client")
+	log.Info("Creating kube client...")
 	var k8sClient client.Client
 	cli = &Client{}
 	go func() {
