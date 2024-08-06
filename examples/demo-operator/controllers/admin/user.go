@@ -2,12 +2,11 @@ package admin
 
 import (
 	"context"
-	"os"
-
-	"github.com/go-logr/logr"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	adminv1alpha1 "github.com/hidevopsio/kube-starter/examples/demo-operator/apis/admin/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,28 +14,7 @@ import (
 // UserReconciler reconciles a User object
 type UserReconciler struct {
 	client.Client
-	log logr.Logger
 	Scheme *runtime.Scheme
-}
-
-func newUserReconciler(manager ctrl.Manager, scheme *runtime.Scheme) *UserReconciler {
-	log := ctrl.Log.WithName("controllers").WithName("admin").WithName("User")
-	reconciler := &UserReconciler{
-		Client: manager.GetClient(),
-		log:    ctrl.Log.WithName("controllers").WithName("admin").WithName("User"),
-		Scheme: scheme,
-	}
-	err := reconciler.SetupWithManager(manager)
-	if err != nil {
-		log.Error(err, "unable to create controller", "controller", "Project")
-		os.Exit(1)
-	}
-
-	return reconciler
-}
-
-func init() {
-	app.Register(newUserReconciler)
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -49,15 +27,15 @@ func init() {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *UserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
-	log := r.log.WithValues("user", req.NamespacedName)
-	// your logic here
-	log.Info("Reconcile() is called")
+	log.Info("Reconciling User", " namespace: ", req.Namespace, " name: ", req.Name)
 
 	var user adminv1alpha1.User
 	err = r.Get(ctx, req.NamespacedName, &user)
 	if err == nil {
-		log.Info("[]", "[user]", user)
+		log.Infof("[user]: %v", user)
 	}
+
+	log.Info("Successfully reconciled MyApp", " namespace: ", user.Namespace, " name: ", user.Name)
 
 	return ctrl.Result{}, nil
 }
@@ -67,4 +45,23 @@ func (r *UserReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&adminv1alpha1.User{}).
 		Complete(r)
+}
+
+func newUserReconciler(manager ctrl.Manager, scheme *runtime.Scheme) *UserReconciler {
+
+	reconciler := &UserReconciler{
+		Client: manager.GetClient(),
+		Scheme: scheme,
+	}
+	err := reconciler.SetupWithManager(manager)
+	if err != nil {
+		log.Error(err, "unable to create controller ", " controller: ", "Project")
+		os.Exit(1)
+	}
+
+	return reconciler
+}
+
+func init() {
+	app.Register(newUserReconciler)
 }

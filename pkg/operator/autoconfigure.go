@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -35,10 +34,10 @@ func init() {
 
 // Manager is the controller runtime manager
 func (c *configuration) Manager(scheme *runtime.Scheme, cfg *rest.Config) (mgr manager.Manager, err error) {
-	opts := zap.Options{
-		Development: c.Properties.Development,
-	}
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	//opts := zap.Options{
+	//	Development: c.Properties.Development,
+	//}
+	//ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	var options ctrl.Options
 	_ = copier.CopyWithOption(&options, &c.Properties, copier.Option{IgnoreEmpty: true, DeepCopy: true})
@@ -50,6 +49,7 @@ func (c *configuration) Manager(scheme *runtime.Scheme, cfg *rest.Config) (mgr m
 	if c.Properties.RenewDeadline != nil {
 		second := *c.Properties.RenewDeadline * time.Second
 		options.RenewDeadline = &second
+		options.RenewDeadline = &second
 	}
 	if c.Properties.RetryPeriod != nil {
 		second := *c.Properties.RetryPeriod * time.Second
@@ -59,6 +59,9 @@ func (c *configuration) Manager(scheme *runtime.Scheme, cfg *rest.Config) (mgr m
 		second := *c.Properties.SyncPeriod * time.Second
 		options.SyncPeriod = &second
 	}
+	options.MetricsBindAddress = c.Properties.MetricsBindAddress
+	options.LeaderElection = c.Properties.LeaderElection
+	options.Port = c.Properties.Port
 
 	log.Infof("started operator with qps: %v, burst: %v", cfg.QPS, cfg.Burst)
 

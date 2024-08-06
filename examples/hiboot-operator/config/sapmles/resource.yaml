@@ -1,0 +1,8 @@
+# myapp_instance.yaml
+apiVersion: example.com/v1
+kind: MyApp
+metadata:
+  name: example-myapp
+spec:
+  replicas: 2
+  image: registry.cn-shenzhen.aliyuncs.com/cloudnativedev/echoserver:1.4

@@ -1,0 +1,26 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: myapp-role
+  namespace: demo
+rules:
+  - apiGroups: ["example.com"]
+    resources: ["myapps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: myapp-rolebinding
+  namespace: demo
+subjects:
+  - kind: ServiceAccount
+    name: myapp-controller
+    namespace: demo
+roleRef:
+  kind: Role
+  name: myapp-role
+  apiGroup: rbac.authorization.k8s.io

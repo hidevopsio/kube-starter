@@ -3,7 +3,6 @@ module github.com/hidevopsio/kube-starter
 go 1.18
 
 require (
-	github.com/go-logr/logr v0.4.0
 	github.com/google/go-cmp v0.5.2
 	github.com/hidevopsio/hiboot v1.6.4
 	github.com/jinzhu/copier v0.2.8
@@ -42,7 +41,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gavv/monotime v0.0.0-20171021193802-6f8212e8d10d // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
-	github.com/go-logr/zapr v0.2.0 // indirect
+	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.19.2 // indirect
 	github.com/go-openapi/errors v0.19.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.3 // indirect
@@ -115,9 +114,6 @@ require (
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
-	go.uber.org/atomic v1.6.0 // indirect
-	go.uber.org/multierr v1.5.0 // indirect
-	go.uber.org/zap v1.15.0 // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0 // indirect
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
