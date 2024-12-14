@@ -7,7 +7,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"strings"
-	"time"
 )
 
 const (
@@ -60,11 +59,6 @@ func (c *configuration) Token(ctx context.Context, verifier *IDTokenVerifier) (t
 		err = errors.NewUnauthorized(err.Error())
 		log.Errorf("%v -> %v", pe, err)
 		return // fixes the nil pointer issue
-	}
-	if token.Claims.Expiry.Before(time.Now()) {
-		err = errors.NewUnauthorized("Expired")
-		log.Errorf("%v", err)
-		return
 	}
 	if c.prop.Verify {
 		err = verifyOIDCToken(verifier, token.Data)
