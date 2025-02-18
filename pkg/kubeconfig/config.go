@@ -25,16 +25,15 @@ func DefaultKubeconfig() string {
 
 // Kubeconfig new kube config
 func Kubeconfig(inCluster *bool) (cfg *rest.Config, err error) {
-	if inCluster == nil || *inCluster {
-		cfg, err = rest.InClusterConfig()
-	}
 
-	if err != nil || inCluster != nil && !*inCluster {
-		cfg, err = clientcmd.BuildConfigFromFlags("", DefaultKubeconfig())
+	cfg, err = clientcmd.BuildConfigFromFlags("", DefaultKubeconfig())
+	if err != nil {
+		log.Infof("building kubeconfig: %v", err)
+		cfg, err = rest.InClusterConfig()
 		if err != nil {
-			log.Warnf("Error building kubeconfig: %s", err.Error())
+			log.Errorf("failed to find kubeconfig: %v", err)
 		}
 	}
+
 	return
 }
-
