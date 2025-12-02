@@ -4,11 +4,10 @@ package oidc
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"strings"
 	"time"
@@ -32,10 +31,10 @@ func FormatName(name string) string {
 		return name
 	}
 
-	// Generate a consistent 4-character suffix from hash of ORIGINAL name (before lowercasing)
+	// Generate a consistent 8-character suffix from CRC32 checksum of ORIGINAL name
 	// This prevents collisions when different usernames format to the same string
-	originalHash := sha256.Sum256([]byte(name))
-	suffix := hex.EncodeToString(originalHash[:])[:4]
+	crc32Hash := crc32.ChecksumIEEE([]byte(name))
+	suffix := fmt.Sprintf("%08x", crc32Hash)
 
 	// Convert to lowercase
 	lowered := strings.ToLower(name)
