@@ -20,30 +20,47 @@ func IsNameValidate(name string) bool {
 }
 
 func FormatName(name string) string {
+	// Handle empty or whitespace-only input
+	name = strings.TrimSpace(name)
+	if len(name) == 0 {
+		// Return a default name for empty input (should not happen in normal flow)
+		return "user-unknown"
+	}
+
 	// If the name is already DNS-1123 compliant, return as-is
 	if IsNameValidate(name) {
 		return name
 	}
 
+	// Generate a consistent 4-character suffix from hash of ORIGINAL name (before lowercasing)
+	// This prevents collisions when different usernames format to the same string
+	originalHash := sha256.Sum256([]byte(name))
+	suffix := hex.EncodeToString(originalHash[:])[:4]
+
 	// Convert to lowercase
-	name = strings.ToLower(name)
+	lowered := strings.ToLower(name)
 
 	// Replace non-DNS-1123 characters with '-'
-	result := make([]byte, len(name))
-	for i := range name {
-		if (name[i] >= '0' && name[i] <= '9') || (name[i] <= 'z' && name[i] >= 'a') {
-			result[i] = name[i]
+	result := make([]byte, len(lowered))
+	for i := range lowered {
+		if (lowered[i] >= '0' && lowered[i] <= '9') || (lowered[i] <= 'z' && lowered[i] >= 'a') {
+			result[i] = lowered[i]
 			continue
 		}
 		result[i] = '-'
 	}
 
-	// Generate a consistent 4-character suffix from hash of original name
-	// This prevents collisions when different usernames format to the same string
-	hash := sha256.Sum256([]byte(name))
-	suffix := hex.EncodeToString(hash[:])[:4]
+	formatted := string(result)
 
-	return string(result) + "-" + suffix
+	// Trim leading/trailing hyphens (DNS-1123 requirement)
+	formatted = strings.Trim(formatted, "-")
+
+	// If after trimming we have an empty string, use a default prefix
+	if len(formatted) == 0 {
+		formatted = "user"
+	}
+
+	return formatted + "-" + suffix
 }
 
 // DecodeWithoutVerify decodes the JWT string and returns the claims.
@@ -69,20 +86,22 @@ func DecodeWithoutVerify(s string) (c *Claims, err error) {
 	if err := json.Indent(&prettyJson, payload, "", "  "); err != nil {
 		return nil, fmt.Errorf("could not indent the json of token: %w", err)
 	}
+
+	// Fill username as the value of name if it is empty (do this BEFORE formatting)
+	username := claims.Username
+	if username == "" {
+		username = claims.Name
+	}
+
 	cls := &Claims{
 		Issuer:            claims.Issuer,
 		Subject:           claims.Subject,
 		Name:              claims.Name,
-		Username:          claims.Username,
-		FormattedUsername: FormatName(claims.Username),
+		Username:          username,
+		FormattedUsername: FormatName(username),
 		Email:             claims.Email,
 		Expiry:            time.Unix(claims.ExpiresAt, 0),
 		Pretty:            prettyJson.String(),
-	}
-
-	// fill username as the value of name if it is empty
-	if cls.Username == "" {
-		cls.Username = cls.Name
 	}
 
 	return cls, nil
