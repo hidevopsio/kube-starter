@@ -1,8 +1,9 @@
 package kubeclient
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/at"
 	"time"
+
+	"github.com/hidevopsio/hiboot/pkg/at"
 )
 
 // Properties the operator properties
@@ -14,7 +15,7 @@ type Properties struct {
 	DefaultInCluster *bool `json:"defaultInCluster"`
 
 	//OIDC Scope Impersonate
-	OIDCScope string `json:"oidcScope"`
+	OIDCScope string `json:"oidcScope" default:"profile"`
 
 	QPS float32 `json:"qps"`
 

@@ -1,6 +1,9 @@
 package kubeclient
 
 import (
+	"os"
+	"time"
+
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/kube-starter/pkg/kubeconfig"
@@ -8,9 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"time"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 const (
@@ -19,13 +21,20 @@ const (
 
 // KubeClient new kube client
 func KubeClient(scheme *runtime.Scheme, cfg *rest.Config) (k8sClient client.Client, err error) {
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
+	// Use dynamic REST mapper for aggregated API services (like kiosk Space)
+	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
+	if err != nil {
+		log.Warn(err)
+		return
+	}
+
+	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme, Mapper: mapper})
 	if k8sClient == nil {
 		go func() {
 			var count int
 			for k8sClient == nil {
 				count++
-				k8sClient, err = client.New(cfg, client.Options{Scheme: scheme})
+				k8sClient, err = client.New(cfg, client.Options{Scheme: scheme, Mapper: mapper})
 				if err == nil && k8sClient != nil {
 					app.Register(k8sClient)
 					log.Infof("Got kube client by retry %v times: %v", k8sClient, count)
@@ -53,6 +62,14 @@ func RuntimeKubeClient(scheme *runtime.Scheme, token *oidc.Token, useToken bool,
 	cfg.Burst = properties.Burst
 	cfg.Timeout = properties.Timeout
 
+	// Create dynamic REST mapper with base config (before adding user auth)
+	// This ensures API discovery works with service account credentials
+	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
+	if err != nil {
+		log.Warn(err)
+		return
+	}
+
 	if token != nil && token.Claims != nil && token.Data != "" {
 		kubeServiceHost := os.Getenv("KUBERNETES_SERVICE_HOST")
 		if kubeServiceHost == "" && useToken {
@@ -76,7 +93,7 @@ func RuntimeKubeClient(scheme *runtime.Scheme, token *oidc.Token, useToken bool,
 		return
 	}
 
-	cli, err = client.New(cfg, client.Options{Scheme: scheme})
+	cli, err = client.New(cfg, client.Options{Scheme: scheme, Mapper: mapper})
 	if err != nil {
 		log.Warn(err)
 	}
