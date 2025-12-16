@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"k8s.io/apimachinery/pkg/util/validation"
+	"os"
 	"strings"
 	"time"
 )
@@ -59,7 +60,11 @@ func FormatName(name string) string {
 		formatted = "user"
 	}
 
-	return formatted + "-" + suffix
+	if len(os.Getenv("UNIQUE_USERNAME")) > 0 {
+		formatted = formatted + "-" + suffix
+	}
+
+	return formatted
 }
 
 // DecodeWithoutVerify decodes the JWT string and returns the claims.
